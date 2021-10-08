@@ -94,6 +94,7 @@ public class DLPTextToBigQueryStreamingV2 {
                     .setFilePattern(options.getFilePattern())
                     .setInterval(DEFAULT_POLL_INTERVAL)
                     .build());
+        LOG.debug("test");
         final PCollectionView<List<String>> header =
             inputFiles
                 .apply(

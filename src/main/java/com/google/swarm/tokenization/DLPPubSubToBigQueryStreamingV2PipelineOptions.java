@@ -1,0 +1,140 @@
+/*
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.google.swarm.tokenization;
+
+import com.google.privacy.dlp.v2.LocationName;
+import com.google.swarm.tokenization.common.Util.DLPMethod;
+import com.google.swarm.tokenization.common.Util.FileType;
+import java.util.List;
+import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
+import org.apache.beam.sdk.io.aws.options.S3Options;
+import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
+import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.TypedRead.Method;
+import org.apache.beam.sdk.options.Default;
+import org.apache.beam.sdk.options.DefaultValueFactory;
+import org.apache.beam.sdk.options.Description;
+import org.apache.beam.sdk.options.PipelineOptions;
+import org.apache.beam.sdk.options.Validation;
+
+public interface DLPPubSubToBigQueryStreamingV2PipelineOptions
+    extends DataflowPipelineOptions, S3Options {
+
+  @Validation.Required
+  String getFilePattern();
+
+  void setFilePattern(String csvFilePattern);
+
+  @Description("DLP Inspect Template Name")
+  String getInspectTemplateName();
+
+  void setInspectTemplateName(String value);
+
+  @Description("DLP DeIdentify Template Name")
+  String getDeidentifyTemplateName();
+
+  void setDeidentifyTemplateName(String value);
+
+  @Description("DLP method deid,inspect,reid")
+  @Default.Enum("INSPECT")
+  DLPMethod getDLPMethod();
+
+  void setDLPMethod(DLPMethod value);
+
+  @Description("Batch Size (max 524kb)")
+  @Default.Integer(500000)
+  Integer getBatchSize();
+
+  void setBatchSize(Integer value);
+
+  @Description("key range")
+  @Default.Integer(100)
+  Integer getKeyRange();
+
+  void setKeyRange(Integer value);
+
+  @Description("BQ Dataset")
+  String getDataset();
+
+  void setDataset(String value);
+
+  @Description("BQ Write Method")
+  @Default.Enum("DEFAULT")
+  BigQueryIO.Write.Method getWriteMethod();
+
+  void setWriteMethod(BigQueryIO.Write.Method value);
+
+  @Description("Record delimiter")
+  @Default.String("\n")
+  String getRecordDelimiter();
+
+  void setRecordDelimiter(String value);
+
+  @Description("Column delimiter")
+  @Default.Character(',')
+  Character getColumnDelimiter();
+
+  void setColumnDelimiter(Character value);
+
+  @Description("BigQuery table to export from in the form <project>:<dataset>.<table>")
+  String getTableRef();
+
+  void setTableRef(String tableRef);
+
+  @Description("read method default, direct, export")
+  @Default.Enum("EXPORT")
+  Method getReadMethod();
+
+  void setReadMethod(Method method);
+
+  @Description("Query")
+  String getQueryPath();
+
+  void setQueryPath(String topic);
+
+  @Description("Topic to use for reid result")
+  String getTopic();
+
+  void setTopic(String topic);
+
+  @Default.Integer(900 * 1000)
+  Integer getSplitSize();
+
+  void setSplitSize(Integer value);
+
+  @Description("DLP Table Headers- Required for Json type")
+  List<String> getHeaders();
+
+  void setHeaders(List<String> topic);
+
+  @Description("Subscription to use for deid")
+  String getInputSubscription();
+
+  void setInputSubscription(String subscription);
+
+  class DLPConfigProjectFactory implements DefaultValueFactory<String> {
+    @Override
+    public String create(PipelineOptions options) {
+      return LocationName.of(
+              ((DLPPubSubToBigQueryStreamingV2PipelineOptions) options).getProject(), "global")
+          .toString();
+    }
+  }
+
+  @Default.InstanceFactory(DLPConfigProjectFactory.class)
+  String getDLPParent();
+
+  void setDLPParent(String parent);
+}

@@ -71,14 +71,15 @@ public class Util {
   public enum DLPMethod {
     INSPECT,
     DEID,
-    REID
+    REID,
+    PUBSUB_DEID
   }
 
   public enum FileType {
     CSV,
     AVRO,
     JSON,
-    TXT
+    TXT,
   }
 
   public static final Gson gson = new Gson();
